@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Loan Default Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDEBE4;
+    --paper-2:#E3E0D6;
+    --ink:#1F2420;
+    --ink-soft:#5B6259;
+    --line:#C9C4B5;
+    --accent:#2F4F3E;
+    --accent-soft:#DCE3D9;
+    --low:#2F6B48;
+    --low-bg:#DEEAE1;
+    --med:#96681F;
+    --med-bg:#F0E4CC;
+    --high:#8C3B32;
+    --high-bg:#F1DCD8;
+    --error:#8C3B32;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding:48px 24px 80px;
+  }
+  .page{max-width:980px;margin:0 auto;}
+
+  header{margin-bottom:40px;}
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:clamp(28px,4vw,40px);
+    line-height:1.15;
+    margin:0 0 12px;
+    max-width:620px;
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1.55;
+    max-width:560px;
+    margin:0;
+  }
+
+  .counter{
+    display:grid;
+    grid-template-columns:1.15fr 1px 1fr;
+    gap:0;
+    border-top:1px solid var(--line);
+  }
+  @media (max-width:760px){
+    .counter{grid-template-columns:1fr;}
+    .divider{display:none;}
+  }
+  .divider{background:var(--line);}
+
+  .form-col{padding:32px 40px 32px 0;}
+  .result-col{padding:32px 0 32px 40px;}
+  @media (max-width:760px){
+    .form-col,.result-col{padding:28px 0;}
+  }
+
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+
+  .field{margin-bottom:20px;}
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:13.5px;
+    font-weight:500;
+    margin-bottom:7px;
+  }
+  .field label .hint{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:400;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .field input[type=number]{
+    width:100%;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14.5px;
+    color:var(--ink);
+  }
+  .field input[type=number]:focus{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .field input.err{outline:2px solid var(--error); outline-offset:1px;}
+  .field-err{
+    font-size:12px;
+    color:var(--error);
+    margin-top:5px;
+    min-height:14px;
+  }
+
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:2px 0 6px;
+  }
+  .toggle-row label{font-size:13.5px; font-weight:500;}
+  .switch{
+    position:relative;
+    width:42px;height:24px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .switch .knob{
+    position:absolute;
+    top:2px;left:2px;
+    width:18px;height:18px;
+    background:var(--ink-soft);
+    border-radius:50%;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .switch.on{background:var(--accent-soft); border-color:var(--accent);}
+  .switch.on .knob{transform:translateX(18px); background:var(--accent);}
+
+  .presets{
+    display:flex; gap:8px; margin:28px 0 4px; flex-wrap:wrap;
+  }
+  .preset-btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:6px 11px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .preset-btn:hover{border-color:var(--ink-soft); color:var(--ink);}
+
+  .submit-btn{
+    margin-top:24px;
+    width:100%;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:2px;
+    padding:14px 20px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:500;
+    font-size:14.5px;
+    cursor:pointer;
+    letter-spacing:.01em;
+  }
+  .submit-btn:hover{background:var(--accent);}
+  .submit-btn:disabled{background:var(--ink-soft); cursor:default;}
+
+  .conn-note{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:12px;
+    line-height:1.5;
+  }
+  .conn-note code{
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper-2);
+    padding:1px 5px;
+    border-radius:2px;
+  }
+
+  /* Result column */
+  .result-empty{
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.6;
+    padding-top:4px;
+    max-width:340px;
+  }
+  .result-empty .arrow-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    margin-top:14px;
+    display:block;
+  }
+
+  .api-error{
+    background:var(--high-bg);
+    border:1px solid var(--high);
+    color:var(--high);
+    padding:14px 16px;
+    border-radius:2px;
+    font-size:13.5px;
+    line-height:1.5;
+  }
+
+  .band-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.03em;
+    padding:5px 11px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .band-low{background:var(--low-bg); color:var(--low);}
+  .band-medium{background:var(--med-bg); color:var(--med);}
+  .band-high{background:var(--high-bg); color:var(--high);}
+
+  .prob-figure{
+    font-family:'Newsreader', serif;
+    font-style:italic;
+    font-weight:500;
+    line-height:1;
+    margin:0 0 6px;
+  }
+  .prob-figure .num{font-size:64px;}
+  .prob-figure .pct{font-size:28px;}
+  .prob-caption{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:26px;
+  }
+
+  .gauge-track{
+    height:8px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:4px;
+  }
+  .gauge-fill{
+    height:100%;
+    border-radius:999px;
+    transition:width .5s cubic-bezier(.4,0,.2,1), background .3s ease;
+  }
+  .gauge-scale{
+    display:flex; justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    margin-bottom:26px;
+  }
+
+  .verdict-line{
+    font-size:14.5px;
+    line-height:1.6;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+    margin-bottom:22px;
+  }
+  .verdict-line b{font-weight:600;}
+
+  .ledger{
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  .ledger-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    padding:6px 0;
+    color:var(--ink-soft);
+  }
+  .ledger-row span:last-child{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+  }
+
+  .loading{
+    display:flex; align-items:center; gap:10px;
+    color:var(--ink-soft); font-size:13.5px;
+    padding-top:6px;
+  }
+  .spinner{
+    width:14px;height:14px;
+    border:2px solid var(--line);
+    border-top-color:var(--ink-soft);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){
+    .spinner{animation:none;}
+    .gauge-fill{transition:none;}
+  }
+
+  footer{
+    margin-top:56px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="kicker">DAY 12 — LOAN DEFAULT PREDICTOR</p>
+    <h1>Fill in an applicant's details. See how the model reads their risk.</h1>
+    <p class="sub">This page talks directly to the FastAPI service running on your machine. Nothing is sent anywhere else.</p>
+  </header>
+
+  <div class="counter">
+    <div class="form-col">
+      <p class="section-label">APPLICANT DETAILS</p>
+
+      <div class="presets">
+        <button class="preset-btn" data-preset="safe">Load a safe example</button>
+        <button class="preset-btn" data-preset="risky">Load a risky example</button>
+        <button class="preset-btn" data-preset="borderline">Load a borderline example</button>
+      </div>
+
+      <form id="form" style="margin-top:22px;" novalidate>
+        <div class="field">
+          <label for="age">Age<span class="hint">18–100</span></label>
+          <input type="number" id="age" value="34" min="18" max="100" step="1" />
+          <div class="field-err" id="err-age"></div>
+        </div>
+
+        <div class="field">
+          <label for="annual_income">Annual income<span class="hint">&gt; 0</span></label>
+          <input type="number" id="annual_income" value="62000" min="1" step="any" />
+          <div class="field-err" id="err-annual_income"></div>
+        </div>
+
+        <div class="field">
+          <label for="employment_years">Years at current job<span class="hint">0–60</span></label>
+          <input type="number" id="employment_years" value="6.5" min="0" max="60" step="0.5" />
+          <div class="field-err" id="err-employment_years"></div>
+        </div>
+
+        <div class="field">
+          <label for="credit_score">Credit score<span class="hint">300–850</span></label>
+          <input type="number" id="credit_score" value="610" min="300" max="850" step="1" />
+          <div class="field-err" id="err-credit_score"></div>
+        </div>
+
+        <div class="field">
+          <label for="loan_amount">Loan amount requested<span class="hint">&gt; 0</span></label>
+          <input type="number" id="loan_amount" value="42000" min="1" step="any" />
+          <div class="field-err" id="err-loan_amount"></div>
+        </div>
+
+        <div class="field">
+          <label for="debt_to_income">Debt-to-income ratio<span class="hint">0–2</span></label>
+          <input type="number" id="debt_to_income" value="0.38" min="0" max="2" step="0.01" />
+          <div class="field-err" id="err-debt_to_income"></div>
+        </div>
+
+        <div class="field">
+          <label for="num_late_payments">Late payments, last 12 months<span class="hint">0–50</span></label>
+          <input type="number" id="num_late_payments" value="3" min="0" max="50" step="1" />
+          <div class="field-err" id="err-num_late_payments"></div>
+        </div>
+
+        <div class="field">
+          <div class="toggle-row">
+            <label>Has a cosigner</label>
+            <div class="switch" id="cosigner-switch" role="switch" aria-checked="false" tabindex="0">
+              <div class="knob"></div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">Assess this applicant</button>
+
+        <p class="conn-note">
+          Expects the API at <code id="api-base-display">http://127.0.0.1:8000</code>.
+          Start it first with <code>uvicorn app.main:app --reload</code>.
+        </p>
+      </form>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="result-col">
+      <p class="section-label">ASSESSMENT</p>
+      <div id="result-area">
+        <div class="result-empty">
+          Fill in the form and submit it to see the model's read on this applicant: a default probability, a risk band, and the exact numbers behind them.
+          <span class="arrow-note">← waiting for a submission</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Serves the model trained in <code style="font-family:'IBM Plex Mono',monospace;">scripts/train_model.py</code>. Every field is validated twice: once here, once again by the API itself.
+  </footer>
+
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+document.getElementById("api-base-display").textContent = API_BASE;
+
+const fields = ["age","annual_income","employment_years","credit_score","loan_amount","debt_to_income","num_late_payments"];
+const bounds = {
+  age:[18,100], annual_income:[0.0000001,Infinity], employment_years:[0,60],
+  credit_score:[300,850], loan_amount:[0.0000001,Infinity], debt_to_income:[0,2],
+  num_late_payments:[0,50]
+};
+
+const presets = {
+  safe:{age:45, annual_income:120000, employment_years:15, credit_score:790, loan_amount:15000, debt_to_income:0.12, num_late_payments:0, has_cosigner:1},
+  risky:{age:24, annual_income:28000, employment_years:0.5, credit_score:520, loan_amount:24000, debt_to_income:0.65, num_late_payments:6, has_cosigner:0},
+  borderline:{age:29, annual_income:48000, employment_years:3, credit_score:615, loan_amount:30000, debt_to_income:0.42, num_late_payments:4, has_cosigner:0}
+};
+
+const cosignerSwitch = document.getElementById("cosigner-switch");
+let hasCosigner = false;
+function setCosigner(v){
+  hasCosigner = v;
+  cosignerSwitch.classList.toggle("on", v);
+  cosignerSwitch.setAttribute("aria-checked", String(v));
+}
+cosignerSwitch.addEventListener("click", () => setCosigner(!hasCosigner));
+cosignerSwitch.addEventListener("keydown", (e) => {
+  if(e.key === " " || e.key === "Enter"){ e.preventDefault(); setCosigner(!hasCosigner); }
+});
+
+document.querySelectorAll(".preset-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const p = presets[btn.dataset.preset];
+    fields.forEach(f => document.getElementById(f).value = p[f]);
+    setCosigner(!!p.has_cosigner);
+    fields.forEach(f => clearFieldError(f));
+  });
+});
+
+function clearFieldError(f){
+  document.getElementById(f).classList.remove("err");
+  document.getElementById("err-" + f).textContent = "";
+}
+
+function validate(){
+  let ok = true;
+  const values = {};
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    const v = parseFloat(el.value);
+    const [lo, hi] = bounds[f];
+    clearFieldError(f);
+    if(el.value === "" || isNaN(v)){
+      el.classList.add("err");
+      document.getElementById("err-" + f).textContent = "Required.";
+      ok = false;
+    } else if(v < lo || v > hi){
+      el.classList.add("err");
+      const loText = lo === 0.0000001 ? "0" : lo;
+      document.getElementById("err-" + f).textContent = `Must be between ${loText} and ${hi === Infinity ? "any value" : hi}.`;
+      ok = false;
+    } else {
+      values[f] = v;
+    }
+  });
+  values.has_cosigner = hasCosigner ? 1 : 0;
+  return ok ? values : null;
+}
+
+function bandClass(band){ return "band-" + band; }
+function bandColor(band){
+  if(band === "low") return getComputedStyle(document.documentElement).getPropertyValue("--low").trim();
+  if(band === "medium") return getComputedStyle(document.documentElement).getPropertyValue("--med").trim();
+  return getComputedStyle(document.documentElement).getPropertyValue("--high").trim();
+}
+function verdictSentence(result){
+  const pct = (result.default_probability * 100).toFixed(1);
+  if(result.risk_band === "low"){
+    return `The model reads this as <b>low risk</b>. At ${pct}%, the estimated default chance sits well under the ${(result.decision_threshold*100).toFixed(0)}% line the model uses to flag concern.`;
+  } else if(result.risk_band === "medium"){
+    return `The model reads this as <b>medium risk</b>. At ${pct}%, it is below the ${(result.decision_threshold*100).toFixed(0)}% flagging line, but close enough that a human reviewer may want a second look.`;
+  }
+  return `The model reads this as <b>high risk</b>. At ${pct}%, the estimated default chance is at or above the ${(result.decision_threshold*100).toFixed(0)}% line, so it is flagged for default.`;
+}
+
+function renderResult(result){
+  const pct = (result.default_probability * 100).toFixed(1);
+  const color = bandColor(result.risk_band);
+  document.getElementById("result-area").innerHTML = `
+    <span class="band-tag ${bandClass(result.risk_band)}">${result.risk_band.toUpperCase()} RISK</span>
+    <p class="prob-figure"><span class="num">${pct}</span><span class="pct">%</span></p>
+    <p class="prob-caption">estimated probability of default</p>
+
+    <div class="gauge-track"><div class="gauge-fill" style="width:${pct}%; background:${color};"></div></div>
+    <div class="gauge-scale"><span>0%</span><span>${(result.decision_threshold*100).toFixed(0)}% — flag line</span><span>100%</span></div>
+
+    <p class="verdict-line">${verdictSentence(result)}</p>
+
+    <div class="ledger">
+      <div class="ledger-row"><span>will_default</span><span>${result.will_default}</span></div>
+      <div class="ledger-row"><span>decision_threshold</span><span>${result.decision_threshold}</span></div>
+      <div class="ledger-row"><span>model_version</span><span>${result.model_version}</span></div>
+    </div>
+  `;
+}
+
+function renderLoading(){
+  document.getElementById("result-area").innerHTML = `
+    <div class="loading"><div class="spinner"></div>Asking the model…</div>
+  `;
+}
+
+function renderError(message){
+  document.getElementById("result-area").innerHTML = `
+    <div class="api-error"><b>Could not get a prediction.</b><br>${message}</div>
+  `;
+}
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const values = validate();
+  if(!values) return;
+
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  renderLoading();
+
+  try {
+    const res = await fetch(API_BASE + "/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(values)
+    });
+
+    if(!res.ok){
+      const body = await res.json().catch(() => null);
+      let msg = `The API rejected this request (HTTP ${res.status}).`;
+      if(body && body.detail){
+        msg += " " + (Array.isArray(body.detail) ? body.detail.map(d => d.msg).join(" ") : body.detail);
+      }
+      renderError(msg);
+      return;
+    }
+
+    const result = await res.json();
+    renderResult(result);
+  } catch (err) {
+    renderError(`Couldn't reach ${API_BASE}. Is the server running? Start it with <code>uvicorn app.main:app --reload</code> in the project folder, then try again.`);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
