@@ -120,6 +120,17 @@ Then open `frontend/index.html` directly in a browser (double-click it, or `open
 
 The page includes three one-click example applicants (safe, risky, borderline) so you can see contrasting predictions immediately, validates every field itself before sending anything (with the same ranges as the API), and shows a clear message if the API isn't running rather than failing silently.
 
+## Frontend (frontend_streamlit/app.py)
+
+A second, simpler way to try the model: a standard Streamlit app instead of a static HTML page. It calls the same `/predict` endpoint as everything else in this README, it does not load the model directly.
+
+```bash
+uvicorn app.main:app --reload          # keep this running in one terminal
+streamlit run frontend_streamlit/app.py  # in another terminal
+```
+
+Streamlit opens a browser tab automatically (usually `http://localhost:8501`). It has the same three preset buttons, a form with all eight fields, and shows the result as a probability metric, a colored risk banner, a progress bar, and an expandable raw JSON response for anyone who wants to see exactly what the API returned.
+
 ## Why this matters (deployment vs. modeling)
 
 A notebook proves you can train a model. An API proves you can hand that model to someone else, safely:
@@ -158,7 +169,9 @@ day-12-model-deployment-fastapi/
     model_service.py    Model loading + prediction logic, framework-free
     schemas.py           Pydantic request/response models and validation
   frontend/
-    index.html            Standalone interactive frontend (no build step)
+    index.html            Standalone HTML/JS frontend (no build step)
+  frontend_streamlit/
+    app.py                  Streamlit frontend, calls the same API
   model/
     loan_default_model.joblib   Trained model bundle (model + feature order + metrics)
   scripts/
