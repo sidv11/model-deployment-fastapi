@@ -1,8 +1,8 @@
-# Day 12: Model Deployment Mini-Project (FastAPI)
+# Model Deployment Mini-Project (FastAPI)
 
 Every project so far in this series lived inside a notebook. A notebook only works while a person is sitting there clicking "run." This project takes the Day 8 to Day 11 loan default model and gives it a doorbell, so any program on the same machine, or on a network, can knock on the door and get a prediction back, with no notebook involved.
 
-## Explained like you are five
+## Explained in simplest language
 
 Think of the trained model as a very smart puppet who is very good at guessing one thing: will this person pay back their loan. But the puppet only knows how to talk to the person who built it, inside a private room (the notebook).
 
